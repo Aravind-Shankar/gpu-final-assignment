@@ -10,7 +10,7 @@ using namespace std;
 template <typename T>
 void prompt_input(T* pVar, const char* msg)
 {
-	cout << endl << msg << "\t:\t";
+	cout << msg << "\t:\t";
 	cin >> *pVar;
 	cout << endl;
 }
