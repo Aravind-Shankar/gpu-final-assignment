@@ -1,5 +1,8 @@
 #include "conc_uf.h"
 
+#if CONC
+	__device__
+#endif
 conc_uf::conc_uf(int n)
 {
 	this->n = n;
@@ -11,14 +14,24 @@ conc_uf::conc_uf(int n)
 		parent[i] = i;
 		size[i] = 1;
 	}
+
+#if CONC
+	locked = 0;
+#endif
 }
 
+#if CONC
+	__device__
+#endif
 conc_uf::~conc_uf()
 {
 	delete[] parent;
 	delete[] size;
 }
 
+#if CONC
+	__device__
+#endif
 int conc_uf::root(int i)
 {
 	while (i != parent[i])
@@ -29,13 +42,35 @@ int conc_uf::root(int i)
 	return i;
 }
 
+#if CONC
+	__device__
+#endif
 bool conc_uf::find(int i, int j)
 {
-	return root(i) == root(j);
+#if CONC
+	while (atomicExch(locked, 1) == 1)
+		;
+#endif
+
+	bool res = (root(i) == root(j));
+
+#if CONC
+	locked = 0;
+#endif
+
+	return res;
 }
 
+#if CONC
+	__device__
+#endif
 void conc_uf::unite(int i, int j)
 {
+#if CONC
+	while (atomicExch(locked, 1) == 1)
+		;
+#endif
+
 	int ri = root(i), rj = root(j);
 	if (ri != rj)
 	{
@@ -50,4 +85,8 @@ void conc_uf::unite(int i, int j)
 			size[ri] += size[rj];
 		}
 	}
+
+#if CONC
+	locked = 0;
+#endif
 }

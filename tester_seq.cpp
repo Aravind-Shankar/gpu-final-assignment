@@ -1,3 +1,5 @@
+//#define CONC 0			// commented as not necessary, #if will still fail if CONC is undefined
+
 #include "conc_uf.h"
 #include "helpers.h"
 
