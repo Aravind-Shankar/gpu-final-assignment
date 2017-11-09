@@ -3,7 +3,9 @@
 #include "conc_uf.h"
 #include "helpers.h"
 
-int main(int argc, char const *argv[])
+#include <algorithm>		// for sort()
+
+void plain_test()
 {
 	int n, i, j;
 	char choice;
@@ -35,6 +37,49 @@ int main(int argc, char const *argv[])
 
 		prompt_input(&choice, "Continue? (y/n)");
 	} while (choice == 'y' || choice == 'Y');
+}
 
+struct edge
+{
+	int from, to, wt;
+} *edges;
+
+bool edge_comp(edge& a, edge& b) { return a.wt < b.wt; }
+
+void kruskal()
+{
+	int v, e;
+	cin >> v >> e;
+
+	edge *edges = new edge[e];
+
+	for (int i = 0; i < e; ++i)
+	{
+		cin >> edges[i].from >> edges[i].to >> edges[i].wt;
+	}
+
+	sort(edges, edges + e, edge_comp);
+	conc_uf verts(v);
+	int mincost = 0;
+
+	for (int i = 0; i < e; ++i)
+	{
+		if (!verts.find(edges[i].from, edges[i].to))
+		{
+			cout << "Kruskal adds edge (" << edges[i].from << ", " << edges[i].to << ") wt = " << edges[i].wt << endl;
+
+			verts.unite(edges[i].from, edges[i].to);
+			mincost += edges[i].wt;
+		}
+	}
+
+	cout << "Kruskal complete with mincost = " << mincost << endl;
+	delete [] edges;
+}
+
+int main(int argc, char const *argv[])
+{
+	// plain_test();
+	kruskal();
 	return 0;
 }

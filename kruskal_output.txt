@@ -1,0 +1,5 @@
+Kruskal adds edge (1, 3) wt = 1
+Kruskal adds edge (3, 2) wt = 5
+Kruskal adds edge (2, 4) wt = 7
+Kruskal adds edge (0, 1) wt = 10
+Kruskal complete with mincost = 23
