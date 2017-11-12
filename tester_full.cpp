@@ -81,7 +81,7 @@ void run_kernels()
 	cudaStreamCreate(&helperStream);
 	int blocks, threads, partsize;
 	partition(e, MAX_THREAD_LOAD, &blocks, &threads, &partsize);
-	
+
 	kruskal_kernel_helpers<<<blocks, threads, 0, helperStream>>>(
 		dfrom, dto, dwt,
 		partsize, e,

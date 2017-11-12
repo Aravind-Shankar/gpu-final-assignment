@@ -33,10 +33,37 @@ void kruskal_kernel_master(
 	);
 	#endif
 
-	for (master_index = 0; master_index < e; ++master_index)
+	int mst_index = 0, i;
+	edge *mst_edge = mst;
+	for (master_index = i = 0; i < e; ++i, ++master_index)
 	{
+		__threadfence();
+		if (
+			edge_type_helper[i] == 0 &&
+			!(duf->find(dfrom[i], dto[i]))
+		)
+		{
+			mst_edge->from = dfrom[i];
+			mst_edge->to = dto[i];
+			mst_edge->wt = dwt[i];
+			*mincost = *mincost + dwt[i];
 
+			duf->unite(dfrom[i], dto[i]);
+			__threadfence();
+
+			++mst_index;
+			if (mst_index == v - 1)
+			{
+				master_index = e;	// to make helpers also break out
+				break;
+			}
+			else
+				++mst_edge;
+		}
 	}
+	__threadfence();
+
+	delete duf;
 }
 
 __global__
@@ -50,11 +77,24 @@ void kruskal_kernel_helpers(
 		start = (id + 1) * partsize,
 		end = (start + partsize < e) ? (start + partsize) : e;
 
-	while (master_index == -1)
-		;
-
-	while (master_index < start)
+	if (start < e)	// valid helper thread
 	{
-		
+		while (master_index == -1)
+			;						// ensures that the UF is set up
+
+		int i = start, cycle_edges_offset = start;	// cycle_edges_offset == end => no work left
+		while (master_index < i && cycle_edges_offset < end)
+		{
+			if (edge_type_helper[i] == 0)
+				if (duf->safe_find(dfrom[i], dto[i]))
+				{
+					edge_type_helper[i] = 1;
+					++cycle_edges_offset;
+				}
+
+			++i;
+			if (i == end)
+				i = start;
+		}
 	}
 }

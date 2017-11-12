@@ -23,24 +23,24 @@ private:
 	int root(int i);
 
 #if CONC
-	__device__
+	__host__ __device__
 #endif
 	int safe_root(int i);
 
 public:
 
 #if CONC
-	__device__
+	__host__ __device__
 #endif
 	conc_uf(int n);
 
 #if CONC
-	__device__
+	__host__ __device__
 #endif
 	~conc_uf();
 
 #if CONC
-	__device__
+	__host__ __device__
 #endif
 	void initialize(int n);
 
@@ -50,7 +50,7 @@ public:
 	bool find(int i, int j);
 
 #if CONC	
-	__device__
+	__host__ __device__
 #endif
 	bool safe_find(int i, int j);
 

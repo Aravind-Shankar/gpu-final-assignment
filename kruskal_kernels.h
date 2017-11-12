@@ -1,4 +1,4 @@
-#include <cuda.h>
+#include "conc_uf.h"
 
 __global__
 void kruskal_kernel_master(

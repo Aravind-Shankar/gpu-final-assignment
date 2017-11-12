@@ -1,7 +1,7 @@
 #include "conc_uf.h"
 
 #if CONC
-	__device__
+	__host__ __device__
 #endif
 conc_uf::conc_uf(int n)
 {
@@ -9,7 +9,7 @@ conc_uf::conc_uf(int n)
 }
 
 #if CONC
-	__device__
+	__host__ __device__
 #endif
 conc_uf::~conc_uf()
 {
@@ -18,7 +18,7 @@ conc_uf::~conc_uf()
 }
 
 #if CONC
-	__device__
+	__host__ __device__
 #endif
 void conc_uf::initialize(int n)
 {
@@ -51,7 +51,7 @@ int conc_uf::root(int i)
 }
 
 #if CONC
-	__device__
+	__host__ __device__
 #endif
 int conc_uf::safe_root(int i)
 {
@@ -80,7 +80,7 @@ bool conc_uf::find(int i, int j)
 }
 
 #if CONC
-	__device__
+	__host__ __device__
 #endif
 bool conc_uf::safe_find(int i, int j)
 {
