@@ -39,12 +39,7 @@ void plain_test()
 	} while (choice == 'y' || choice == 'Y');
 }
 
-struct edge
-{
-	int from, to, wt;
-} *edges;
-
-bool edge_comp(edge& a, edge& b) { return a.wt < b.wt; }
+edge *edges;
 
 void kruskal()
 {
@@ -66,7 +61,7 @@ void kruskal()
 	{
 		if (!verts.find(edges[i].from, edges[i].to))
 		{
-			cout << "Kruskal adds edge (" << edges[i].from << ", " << edges[i].to << ") wt = " << edges[i].wt << endl;
+			cout << "Kruskal adds edge " << edges[i] << endl;
 
 			verts.unite(edges[i].from, edges[i].to);
 			mincost += edges[i].wt;

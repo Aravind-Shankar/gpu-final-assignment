@@ -5,6 +5,23 @@
 #endif
 conc_uf::conc_uf(int n)
 {
+	initialize(n);
+}
+
+#if CONC
+	__device__
+#endif
+conc_uf::~conc_uf()
+{
+	delete[] parent;
+	delete[] size;
+}
+
+#if CONC
+	__device__
+#endif
+void conc_uf::initialize(int n)
+{
 	this->n = n;
 	parent = new int[n];
 	size = new int[n];
@@ -23,15 +40,6 @@ conc_uf::conc_uf(int n)
 #if CONC
 	__device__
 #endif
-conc_uf::~conc_uf()
-{
-	delete[] parent;
-	delete[] size;
-}
-
-#if CONC
-	__device__
-#endif
 int conc_uf::root(int i)
 {
 	while (i != parent[i])
@@ -39,6 +47,16 @@ int conc_uf::root(int i)
 		parent[i] = parent[parent[i]];
 		i = parent[i];
 	}
+	return i;
+}
+
+#if CONC
+	__device__
+#endif
+int conc_uf::safe_root(int i)
+{
+	while (i != parent[i])
+		i = parent[i];
 	return i;
 }
 
@@ -59,6 +77,14 @@ bool conc_uf::find(int i, int j)
 #endif
 
 	return res;
+}
+
+#if CONC
+	__device__
+#endif
+bool conc_uf::safe_find(int i, int j)
+{
+	return (safe_root(i) == safe_root(j));
 }
 
 #if CONC
