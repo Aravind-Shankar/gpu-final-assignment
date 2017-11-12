@@ -9,12 +9,17 @@
 #include <thrust/sort.h>	// for thrust::sort_by_key()
 #include <thrust/copy.h>	// print output
 
-int main(int argc, char const *argv[])
+int v, e;
+int *hfrom, *hto, *hwt, *dfrom, *dto, *dwt, *dwt_copy;
+
+int *mincost;
+edge *d_mst;
+int *edge_type_helper;
+
+void read_input()
 {
-	int v, e;
 	cin >> v >> e;
 
-	int *hfrom, *hto, *hwt, *dfrom, *dto, *dwt, *dwt_copy;
 	hfrom = new int[e];
 	hto = new int[e];
 	hwt = new int[e];
@@ -22,7 +27,10 @@ int main(int argc, char const *argv[])
 	{
 		cin >> hfrom[i] >> hto[i] >> hwt[i];
 	}
+}
 
+void setup_device_arrays()
+{
 	int arrsize = e * sizeof(int);
 	cudaMalloc(&dfrom, arrsize);
 	cudaMalloc(&dto, arrsize);
@@ -31,6 +39,7 @@ int main(int argc, char const *argv[])
 	#if DEBUG
 	PRINT_CUDA_ERR("Status after array cudaMallocs");
 	#endif
+
 	cudaMemcpy(dfrom, hfrom, arrsize, cudaMemcpyHostToDevice);
 	cudaMemcpy(dto, hto, arrsize, cudaMemcpyHostToDevice);
 	cudaMemcpy(dwt, hwt, arrsize, cudaMemcpyHostToDevice);
@@ -44,42 +53,70 @@ int main(int argc, char const *argv[])
 	#if DEBUG
 	PRINT_CUDA_ERR("Status after thrust::sort_by_key calls");
 	#endif
+}
 
-	conc_uf *duf;
-	cudaMalloc(&duf, sizeof(conc_uf));
-	int *mincost;
+void setup_kernel_params()
+{
 	cudaHostAlloc(&mincost, sizeof(int), 0);
-	edge *mst;
-	cudaMalloc(&mst, (v - 1) * sizeof(edge));
-	#if DEBUG
-	PRINT_CUDA_ERR("Status after UF, MST edge list and mincost allocations");
-	#endif
+	cudaMalloc(&d_mst, (v - 1) * sizeof(edge));
+	cudaMalloc(&edge_type_helper, e * sizeof(int));
 
+	cudaMemset(edge_type_helper, 0, e);
+	#if DEBUG
+	PRINT_CUDA_ERR("Status after kernel param setup");
+	#endif
+}
+
+void run_kernels()
+{
 	kruskal_kernel_master<<<1, 1>>>(
-		duf, v, e,
+		v, e,
 		dfrom, dto, dwt,
-		mincost, mst
+		mincost, d_mst,
+		edge_type_helper
 	);
+
 	#ifndef DP
 	cudaStream_t helperStream;
 	cudaStreamCreate(&helperStream);
-	int blocks = 1, threads = 32;
+	int blocks, threads, partsize;
+	partition(e, MAX_THREAD_LOAD, &blocks, &threads, &partsize);
+	
 	kruskal_kernel_helpers<<<blocks, threads, 0, helperStream>>>(
-		
+		dfrom, dto, dwt,
+		partsize, e,
+		edge_type_helper
 	);
 	#endif
+
 	cudaDeviceSynchronize();
 	#if DEBUG
 	PRINT_CUDA_ERR("Status after kruskal_kernels");
 	#endif
+}
 
+void print_results()
+{
 	cout << "\n\nKRUSKAL RESULTS:\n\n";
 	cout << "Kruskal min cost = " << *mincost << endl;
 	cout << "Kruskal edges chosen:" << endl;
-	thrust::copy(mst, mst + (v - 1), ostream_iterator<edge>(cout, "\n"));
+	thrust::copy(d_mst, d_mst + (v - 1), ostream_iterator<edge>(cout, "\n"));
+}
 
+void cleanup()
+{
 	delete [] hfrom;
 	delete [] hto;
 	delete [] hwt;
+}
+
+int main(int argc, char const *argv[])
+{
+	read_input();
+	setup_device_arrays();
+	setup_kernel_params();
+	run_kernels();
+	print_results();
+	cleanup();
 	return 0;
 }

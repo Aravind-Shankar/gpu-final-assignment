@@ -6,6 +6,7 @@
 using namespace std;
 
 #define PRINT_CUDA_ERR(tag) std::cout << tag << ": " << cudaGetErrorString(cudaGetLastError()) << std::endl
+#define MAX_THREAD_LOAD 128
 
 class edge
 {
@@ -27,6 +28,14 @@ void prompt_input(T* pVar, const char* msg)
 	cout << msg << "\t:\t";
 	cin >> *pVar;
 	cout << endl;
+}
+
+#if CONC
+__host__ __device__
+#endif
+void partition(int n, int *blocks, int *threads, int *partsize)
+{
+
 }
 
 #endif
