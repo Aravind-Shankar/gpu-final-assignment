@@ -6,7 +6,8 @@
 using namespace std;
 
 #define PRINT_CUDA_ERR(tag) std::cout << tag << ": " << cudaGetErrorString(cudaGetLastError()) << std::endl
-#define MAX_THREAD_LOAD 128
+#define MAX_PART_SIZE 256
+#define MAX_BLOCK_THREADS 1024
 
 class edge
 {
@@ -35,7 +36,27 @@ __host__ __device__
 #endif
 void partition(int n, int *blocks, int *threads, int *partsize)
 {
+	*threads = n;
+	if (*threads > MAX_BLOCK_THREADS)
+	{
+		*threads = MAX_BLOCK_THREADS;
+		n /= MAX_BLOCK_THREADS;
 
+		*partsize = n + 1;
+		if (*partsize > MAX_PART_SIZE)
+		{
+			*partsize = MAX_PART_SIZE;
+			n /= MAX_PART_SIZE;
+
+			*blocks = n + 1;
+		}
+		else
+			*blocks = 1;
+	}
+	else
+	{
+		*partsize = *blocks = 1;
+	}
 }
 
 #endif
